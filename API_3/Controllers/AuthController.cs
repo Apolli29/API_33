@@ -31,7 +31,7 @@ public class AuthController : ControllerBase
         if (await _db.Users.AnyAsync(u => u.Login == request.Login)) return BadRequest("Пользователь существует");
         var user = new User { 
             Login = request.Login,
-            PasswordHash = BCrypt.HashPassword(request.Password),
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
             Phone = request.Phone,
             Address = request.Address, 
             Role = UserRole.RegularUser
@@ -45,7 +45,8 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Login == request.Login);
-        if (user == null || !BCrypt.Verify(request.Password, user.PasswordHash)) return Unauthorized("Неверный логин или пароль");
+        if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+            return Unauthorized("Неверный логин или пароль");
         return Ok(new { token = GenerateJwtToken(user) });
     }
 
