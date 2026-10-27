@@ -12,6 +12,32 @@ public class ClothingController : ControllerBase
 {
     private readonly AppDbContext _db;
     public ClothingController(AppDbContext db) => _db = db;
+    
+    [HttpPost]
+    [Authorize(Roles = "Manager")]
+    public async Task<IActionResult> CreateClothing([FromBody] CreateClothingRequest request)
+    {
+        var clothing = new Clothing
+        {
+            Name = request.Name,
+            Price = request.Price,
+            Description = request.Description,
+            Type = request.Type,
+            IsAvailable = true
+        };
+        foreach (var sizeReq in request.Sizes)
+        {
+            clothing.Sizes.Add(new ClothingSize
+            {
+                SizeLetter = sizeReq.SizeLetter,
+                SizeNumber = sizeReq.SizeNumber,
+                QuantityInStock = sizeReq.QuantityInStock
+            });
+        }
+        _db.Clothings.Add(clothing);
+        await _db.SaveChangesAsync();
+        return CreatedAtAction(nameof(GetAll), new { id = clothing.Id }, clothing);
+    }
 
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] string? search)
@@ -52,5 +78,20 @@ public class ClothingController : ControllerBase
         size.QuantityInStock = quantity;
         await _db.SaveChangesAsync();
         return Ok(size);
+    }
+    public class CreateClothingRequest
+    {
+        public string Name { get; set; } = "";
+        public decimal Price { get; set; }
+        public string? Description { get; set; }
+        public string? Type { get; set; }
+        public List<SizeRequest> Sizes { get; set; } = new();
+    }
+
+    public class SizeRequest
+    {
+        public string SizeLetter { get; set; } = "";
+        public int SizeNumber { get; set; }
+        public int QuantityInStock { get; set; }
     }
 }
