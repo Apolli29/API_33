@@ -34,7 +34,7 @@ public class AuthController : ControllerBase
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
             Phone = request.Phone,
             Address = request.Address, 
-            Role = UserRole.RegularUser
+            Role = UserRole.Manager
         };
         _db.Users.Add(user);
         await _db.SaveChangesAsync();
